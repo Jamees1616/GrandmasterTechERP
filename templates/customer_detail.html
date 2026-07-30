@@ -1,4 +1,52 @@
-{% extends "base.html" %}{% block title %}Customer Details - Grandmaster Tech ERP{% endblock %}{% block content %}<div class="top-bar"><div class="page-title"><h2>Customer Details</h2><p>View customer information and service history</p></div></div><div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-user"></i> Customer Information</div><a href="{{ url_for('customers') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a></div><div class="form-group"><strong>Name:</strong><br>{{ customer.name }}</div><div class="form-group"><strong>Company:</strong><br>{{ customer.company or '-' }}</div><div class="form-group"><strong>Phone:</strong><br>{{ customer.phone or '-' }}</div><div class="form-group"><strong>Email:</strong><br>{{ customer.email or '-' }}</div><div class="form-group"><strong>Address:</strong><br>{{ customer.address or '-' }}</div><div class="form-group"><strong>Customer Since:</strong><br>{{ customer.created_at.strftime('%d %b %Y') }}</div></div><div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-server"></i> Registered Equipment</div></div>{% if customer.equipment %}<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Category</th><th>Brand</th><th>Model</th><th>Status</th></tr></thead><tbody>{% for item in customer.equipment %}<tr><td>{{ item.category }}</td><td>{{ item.brand or '-' }}</td><td>{{ item.model or '-' }}</td><td><span class="status-badge status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<p style="color:var(--text-muted);">No equipment registered for this customer.</p>{% endif %}</div>
+{% extends "base.html" %}{% block title %}Customer Details - Grandmaster Tech ERP{% endblock %}{% block content %}<div class="top-bar"><div class="page-title"><h2>Customer Details</h2><p>View customer information and service history</p></div></div><div class="card">
+<div class="card-header">
+<div class="card-title"><i class="fas fa-user"></i> Customer Information</div>
+<a href="{{ url_for('customers') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<form method="POST" action="{{ url_for('update_customer', id=customer.id) }}">
+<div class="form-group">
+<label class="form-label">Customer Name</label>
+<input type="text" name="name" class="form-input" value="{{ customer.name or '' }}" required>
+</div>
+
+<div class="form-group">
+<label class="form-label">Company</label>
+<input type="text" name="company" class="form-input" value="{{ customer.company or '' }}" placeholder="Company name">
+</div>
+
+<div class="form-group">
+<label class="form-label">Phone Number</label>
+<input type="tel" name="phone" class="form-input" value="{{ customer.phone or '' }}" placeholder="Phone number">
+</div>
+
+<div class="form-group">
+<label class="form-label">Email Address</label>
+<input type="email" name="email" class="form-input" value="{{ customer.email or '' }}" placeholder="Email address">
+</div>
+
+<div class="form-group">
+<label class="form-label">Address</label>
+<textarea name="address" class="form-textarea" placeholder="Customer address">{{ customer.address or '' }}</textarea>
+</div>
+
+<div class="form-group">
+<label class="form-label">Customer Since</label>
+<div style="padding:12px 14px;background:var(--dark);border:1px solid var(--border);border-radius:10px;color:var(--text-muted);">
+{{ customer.created_at.strftime('%d %b %Y') }}
+</div>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<button type="submit" class="btn btn-primary">
+<i class="fas fa-save"></i> Save Customer Details
+</button>
+<a href="{{ url_for('customers') }}" class="btn btn-secondary">
+<i class="fas fa-times"></i> Cancel
+</a>
+</div>
+</form>
+</div></div><div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-server"></i> Registered Equipment</div></div>{% if customer.equipment %}<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Category</th><th>Brand</th><th>Model</th><th>Status</th></tr></thead><tbody>{% for item in customer.equipment %}<tr><td>{{ item.category }}</td><td>{{ item.brand or '-' }}</td><td>{{ item.model or '-' }}</td><td><span class="status-badge status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<p style="color:var(--text-muted);">No equipment registered for this customer.</p>{% endif %}</div>
 <!-- REPAIR & SERVICE HISTORY -->
 <div class="card">
     <div class="card-header">

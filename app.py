@@ -123,6 +123,25 @@ def customer_detail(id):
     customer = Customer.query.get_or_404(id)
     return render_template('customer_detail.html', customer=customer)
 
+
+@app.route('/customers/<int:id>/update', methods=['POST'])
+def update_customer(id):
+    customer = Customer.query.get_or_404(id)
+
+    customer.name = request.form.get('name', '').strip()
+    customer.phone = request.form.get('phone', '').strip()
+    customer.email = request.form.get('email', '').strip()
+    customer.company = request.form.get('company', '').strip()
+    customer.address = request.form.get('address', '').strip()
+
+    if not customer.name:
+        flash('Customer name is required.', 'danger')
+        return redirect(url_for('customer_detail', id=id))
+
+    db.session.commit()
+    flash('Customer details updated successfully!', 'success')
+    return redirect(url_for('customer_detail', id=id))
+
 @app.route('/customers/add', methods=['POST'])
 def add_customer():
     customer = Customer(
