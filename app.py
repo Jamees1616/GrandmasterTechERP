@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from werkzeug.utils import secure_filename
 import os
+import requests
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dotenv import load_dotenv
@@ -19,6 +20,11 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'instance/uploads/job_attachments'
 app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
+
+# ========== SUPABASE STORAGE ==========
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY')
+SUPABASE_BUCKET = 'job-attachments'
 
 
 db = SQLAlchemy(app)
@@ -237,10 +243,33 @@ def upload_job_attachment(id):
     timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
     stored_filename = f"{job.id}_{timestamp}_{safe_filename}"
 
-    upload_folder = app.config['UPLOAD_FOLDER']
-    os.makedirs(upload_folder, exist_ok=True)
+    # Upload file to Supabase Storage
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        flash('Supabase Storage is not configured.', 'error')
+        return redirect(url_for('jobcards'))
 
-    uploaded_file.save(os.path.join(upload_folder, stored_filename))
+    supabase_upload_url = (
+        f"{SUPABASE_URL}/storage/v1/object/"
+        f"{SUPABASE_BUCKET}/{stored_filename}"
+    )
+
+    file_data = uploaded_file.read()
+
+    supabase_response = requests.post(
+        supabase_upload_url,
+        headers={
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Content-Type': uploaded_file.mimetype or 'application/octet-stream',
+        },
+        data=file_data,
+        timeout=60
+    )
+
+    if not supabase_response.ok:
+        print("Supabase upload failed:", supabase_response.status_code, supabase_response.text)
+        flash('Failed to upload attachment to storage.', 'error')
+        return redirect(url_for('jobcards'))
 
     attachment = JobAttachment(
         job_card_id=job.id,
@@ -274,19 +303,73 @@ def upload_job_attachment(id):
 
 @app.route('/jobcards/attachments/<path:filename>')
 def view_job_attachment(filename):
-    return send_from_directory(
-        app.config['UPLOAD_FOLDER'],
-        filename,
-        as_attachment=False
+    if not SUPABASE_URL:
+        return 'Supabase Storage is not configured.', 500
+
+    file_url = (
+        f"{SUPABASE_URL}/storage/v1/object/"
+        f"{SUPABASE_BUCKET}/{filename}"
+    )
+
+    response = requests.get(
+        file_url,
+        headers={
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY
+        },
+        timeout=60
+    )
+
+    if not response.ok:
+        return 'Attachment not found.', 404
+
+    from flask import Response
+
+    return Response(
+        response.content,
+        status=200,
+        content_type=response.headers.get(
+            'Content-Type',
+            'application/octet-stream'
+        )
     )
 
 
 @app.route('/jobcards/attachments/<path:filename>/download')
 def download_job_attachment(filename):
-    return send_from_directory(
-        app.config['UPLOAD_FOLDER'],
-        filename,
-        as_attachment=True
+    if not SUPABASE_URL:
+        return 'Supabase Storage is not configured.', 500
+
+    file_url = (
+        f"{SUPABASE_URL}/storage/v1/object/"
+        f"{SUPABASE_BUCKET}/{filename}"
+    )
+
+    response = requests.get(
+        file_url,
+        headers={
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY
+        },
+        timeout=60
+    )
+
+    if not response.ok:
+        return 'Attachment not found.', 404
+
+    from flask import Response
+
+    return Response(
+        response.content,
+        status=200,
+        content_type=response.headers.get(
+            'Content-Type',
+            'application/octet-stream'
+        ),
+        headers={
+            'Content-Disposition':
+                f'attachment; filename="{filename}"'
+        }
     )
 
 
@@ -294,13 +377,28 @@ def download_job_attachment(filename):
 def delete_job_attachment(attachment_id):
     attachment = JobAttachment.query.get_or_404(attachment_id)
 
-    file_path = os.path.join(
-        app.config['UPLOAD_FOLDER'],
-        attachment.filename
-    )
+    # Delete file from Supabase Storage
+    if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+        supabase_delete_url = (
+            f"{SUPABASE_URL}/storage/v1/object/"
+            f"{SUPABASE_BUCKET}/{attachment.filename}"
+        )
 
-    if os.path.exists(file_path):
-        os.remove(file_path)
+        delete_response = requests.delete(
+            supabase_delete_url,
+            headers={
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                'apikey': SUPABASE_SERVICE_KEY
+            },
+            timeout=60
+        )
+
+        if not delete_response.ok:
+            print(
+                "Supabase delete failed:",
+                delete_response.status_code,
+                delete_response.text
+            )
 
     db.session.delete(attachment)
     db.session.commit()
