@@ -360,7 +360,16 @@ function openEditModal(jobId) {
                     '/download" class="btn btn-primary" ' +
                     'style="display:inline-block;margin-top:8px;margin-left:6px;padding:5px 10px;font-size:11px;">' +
                     '<i class="fas fa-download"></i> Download' +
-                    '</a>';
+                    '</a>' +
+                    '<form method="POST" action="/jobcards/attachments/' +
+                    attachment.id +
+                    '/delete" style="display:inline-block;margin-left:6px;" ' +
+                    'onsubmit="return confirm(\'Are you sure you want to delete this attachment?\');">' +
+                    '<button type="submit" class="btn btn-danger" ' +
+                    'style="margin-top:8px;padding:5px 10px;font-size:11px;">' +
+                    '<i class="fas fa-trash"></i> Delete' +
+                    '</button>' +
+                    '</form>';
 
                 attachmentsList.appendChild(item);
             });
