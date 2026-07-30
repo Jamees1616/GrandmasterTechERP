@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="page-title">
+        <h2>Equipment Register</h2>
+        <p>Track every device under your care</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addEquipmentModal')">
+        <i class="fas fa-plus"></i> Add Equipment
+    </button>
+</div>
+
+<div class="card">
+    {% if equipment %}
+    <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+<table class="data-table" style="min-width:720px;">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Brand / Model</th>
+                <th>Serial Number</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Jobs</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in equipment %}
+            <tr>
+                <td>
+                    <span class="status-badge" style="background: rgba(0, 212, 255, 0.1); color: var(--primary);">
+                        <i class="fas fa-{{ 
+                            'desktop' if item.category == 'Computers' else
+                            'print' if item.category == 'Printers' else
+                            'copy' if item.category == 'Photocopiers' else
+                            'scan' if item.category == 'Scanners' else
+                            'money-bill' if item.category == 'Money Handling' else
+                            'university' if item.category == 'Banking Equipment' else
+                            'cash-register' if item.category == 'POS Systems' else
+                            'network-wired' if item.category == 'Networking' else
+                            'battery-full' if item.category == 'Power Backup' else
+                            'shield-alt' if item.category == 'Security Systems' else
+                            'chair' if item.category == 'Office Equipment' else
+                            'mobile-alt' if item.category == 'Mobile Devices' else
+                            'industry' if item.category == 'Industrial' else
+                            'microchip'
+                        }}"></i>
+                        {{ item.category }}
+                    </span>
+                </td>
+                <td style="font-weight: 600;">
+                    <a href="{{ url_for('equipment_detail', id=item.id) }}"
+   style="color:var(--primary);font-weight:600;text-decoration:none;">
+    {{ item.brand or 'Unknown' }} {{ item.model or '' }}
+</a>
+                </td>
+                <td style="font-family: monospace; color: var(--text-muted);">{{ item.serial_number or '-' }}</td>
+                <td>
+                    <i class="fas fa-user" style="color: var(--accent); margin-right: 6px;"></i>
+                    {{ item.customer.name }}
+                </td>
+                <td>
+                    <span class="status-badge status-{{ item.status|lower }}">
+                        {{ item.status }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge" style="background: rgba(255, 107, 53, 0.1); color: var(--secondary);">
+                        {{ item.job_cards|length }} jobs
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% else %}
+    <div style="text-align: center; padding: 48px; color: var(--text-muted);">
+        <i class="fas fa-server" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+        <p>No equipment registered yet. Add your first device!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Equipment Modal -->
+<div class="modal-overlay" id="addEquipmentModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-plus-circle" style="color: var(--primary); margin-right: 8px;"></i>Add New Equipment</h3>
+            <button class="modal-close" onclick="closeModal('addEquipmentModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('add_equipment') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label">Customer *</label>
+                <select name="customer_id" class="form-select" required>
+                    <option value="">Select a customer...</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.id }}">{{ customer.name }} {% if customer.company %}({{ customer.company }}){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select name="category" class="form-select" required>
+                    <option value="">Select category...</option>
+                    <option value="Computers">Computers</option>
+                    <option value="Printers">Printers</option>
+                    <option value="Photocopiers">Photocopiers</option>
+                    <option value="Scanners">Scanners</option>
+                    <option value="Money Handling">Money Handling Equipment</option>
+                    <option value="Banking Equipment">Banking Equipment</option>
+                    <option value="POS Systems">POS Systems</option>
+                    <option value="Networking">Networking Gear</option>
+                    <option value="Power Backup">Power Backup</option>
+                    <option value="Security Systems">Security Systems</option>
+                    <option value="Office Equipment">Office Equipment</option>
+                    <option value="Mobile Devices">Mobile Devices</option>
+                    <option value="Industrial">Industrial & Specialized</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Brand</label>
+                    <input type="text" name="brand" class="form-input" placeholder="e.g. HP, Canon, Dell">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Model</label>
+                    <input type="text" name="model" class="form-input" placeholder="e.g. LaserJet Pro 400">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Serial Number</label>
+                <input type="text" name="serial_number" class="form-input" placeholder="e.g. SN123456789">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description / Notes</label>
+                <textarea name="description" class="form-textarea" placeholder="Any details about the equipment..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addEquipmentModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Equipment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+</script>
+{% endblock %}

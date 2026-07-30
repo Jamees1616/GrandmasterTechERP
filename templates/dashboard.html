@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.dashboard-stat-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            window.location.href = card.dataset.url;
+        });
+    });
+});
+</script>
+{% block content %}
+<style>
+.dashboard-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+.dashboard-link:hover .card {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+</style>
+
+<div class="top-bar">
+    <div class="page-title">
+        <h2>Dashboard</h2>
+        <p>Welcome back, James — here's your repair empire at a glance</p>
+    </div>
+    <div class="user-info">
+        <div class="user-avatar">JB</div>
+        <div>
+            <div style="font-weight: 600; font-size: 14px;">James Banda</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Grandmaster Technician</div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><a href="{{ url_for('customers') }}" style="color:inherit;text-decoration:none;">Total Customers</a></span>
+            <div class="card-icon blue"><i class="fas fa-users"></i></div>
+        </div>
+        <div class="card-value blue">{{ total_customers }}</div>
+        <div class="card-label">Active clients in your network</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><a href="{{ url_for('equipment') }}" style="color:inherit;text-decoration:none;">Equipment Registered</a></span>
+            <div class="card-icon purple"><i class="fas fa-server"></i></div>
+        </div>
+        <div class="card-value purple">{{ total_equipment }}</div>
+        <div class="card-label">Devices under your care</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><a href="{{ url_for('jobcards') }}" style="color:inherit;text-decoration:none;">Total Jobs</a></span>
+            <div class="card-icon orange"><i class="fas fa-clipboard-list"></i></div>
+        </div>
+        <div class="card-value orange">{{ total_jobs }}</div>
+        <div class="card-label">All-time repair jobs</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><a href="{{ url_for('jobcards') }}" style="color:inherit;text-decoration:none;">Pending</a></span>
+            <div class="card-icon yellow"><i class="fas fa-clock"></i></div>
+        </div>
+        <div class="card-value yellow">{{ pending_jobs }}</div>
+        <div class="card-label">Waiting to be started</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><a href="{{ url_for('jobcards') }}" style="color:inherit;text-decoration:none;">In Progress</a></span>
+            <div class="card-icon blue"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+        <div class="card-value blue">{{ in_progress_jobs }}</div>
+        <div class="card-label">Currently being repaired</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><a href="{{ url_for('jobcards') }}" style="color:inherit;text-decoration:none;">Completed</a></span>
+            <div class="card-icon green"><i class="fas fa-check-circle"></i></div>
+        </div>
+        <div class="card-value green">{{ completed_jobs }}</div>
+        <div class="card-label">Successfully fixed</div>
+    </div>
+</div>
+
+<!-- Recent Jobs -->
+<div class="card" style="margin-top: 8px;">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-history" style="margin-right: 8px; color: var(--primary);"></i>Recent Job Cards</span>
+        <a href="{{ url_for('jobcards') }}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px;">
+            View All <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    
+    {% if recent_jobs %}
+    <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+<table class="data-table" style="min-width:650px;">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Equipment</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in recent_jobs %}
+            <tr>
+                <td style="font-weight: 600;">{{ job.title }}</td>
+                <td>{{ job.equipment.brand }} {{ job.equipment.model }}</td>
+                <td>
+                    <span class="status-badge status-{{ job.status|lower|replace(' ', '-') }}">
+                        {{ job.status }}
+                    </span>
+                </td>
+                <td class="priority-{{ job.priority|lower }}">
+                    <i class="fas fa-flag" style="margin-right: 4px;"></i>{{ job.priority }}
+                </td>
+                <td style="color: var(--text-muted);">{{ job.created_at.strftime('%d %b %Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% else %}
+    <div style="text-align: center; padding: 48px; color: var(--text-muted);">
+        <i class="fas fa-clipboard" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+        <p>No job cards yet. Create your first one!</p>
+        <a href="{{ url_for('jobcards') }}" class="btn btn-primary" style="margin-top: 16px;">
+            <i class="fas fa-plus"></i> Create Job Card
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div class="stats-grid" style="margin-top: 24px;">
+    <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='{{ url_for('customers') }}'">
+        <div class="card-icon blue" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <div class="card-title">Add Customer</div>
+        <div class="card-label">Register a new client</div>
+    </div>
+
+    <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='{{ url_for('equipment') }}'">
+        <div class="card-icon purple" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-plus-circle"></i>
+        </div>
+        <div class="card-title">Add Equipment</div>
+        <div class="card-label">Log a new device</div>
+    </div>
+
+    <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='{{ url_for('jobcards') }}'">
+        <div class="card-icon orange" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-file-medical"></i>
+        </div>
+        <div class="card-title">New Job Card</div>
+        <div class="card-label">Start a repair job</div>
+    </div>
+
+    <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='{{ url_for('knowledge') }}'">
+        <div class="card-icon green" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="card-title">Knowledge Base</div>
+        <div class="card-label">Your repair wisdom</div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block title %}Customer Details - Grandmaster Tech ERP<div class="card">
+<div class="card-header">
+<div class="card-title"><i class="fas fa-history"></i> Repair & Service History</div>
+</div>
+
+{% set all_jobs = [] %}
+{% for item in customer.equipment %}
+    {% for job in item.job_cards %}
+        {% set _ = all_jobs.append(job) %}
+    {% endfor %}
+{% endfor %}
+
+{% if all_jobs %}
+<div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+<table class="data-table" style="min-width:750px;">
+<thead>
+<tr>
+<th>Job</th>
+<th>Equipment</th>
+<th>Status</th>
+<th>Priority</th>
+<th>Created</th>
+</tr>
+</thead>
+<tbody>
+{% for job in all_jobs|sort(attribute='created_at', reverse=true) %}
+<tr>
+<td style="font-weight:600;">{{ job.title }}</td>
+<td>{{ job.equipment.brand or 'Unknown' }} {{ job.equipment.model or '' }}</td>
+<td>
+<span class="status-badge status-{{ job.status|lower|replace(' ', '-') }}">
+{{ job.status }}
+</span>
+</td>
+<td>{{ job.priority }}</td>
+<td style="color:var(--text-muted);">
+{{ job.created_at.strftime('%d %b %Y') }}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div style="text-align:center;padding:32px;color:var(--text-muted);">
+<i class="fas fa-clipboard-list" style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i>
+<p>No repair jobs recorded for this customer yet.</p>
+</div>
+{% endif %}
+</div>
+{% endblock %}{% block content %}<div class="top-bar"><div class="page-title"><h2>Customer Details</h2><p>View customer information and service history</p></div></div><div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-user"></i> Customer Information</div><a href="{{ url_for('customers') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a></div><div class="form-group"><strong>Name:</strong><br>{{ customer.name }}</div><div class="form-group"><strong>Company:</strong><br>{{ customer.company or '-' }}</div><div class="form-group"><strong>Phone:</strong><br>{{ customer.phone or '-' }}</div><div class="form-group"><strong>Email:</strong><br>{{ customer.email or '-' }}</div><div class="form-group"><strong>Address:</strong><br>{{ customer.address or '-' }}</div><div class="form-group"><strong>Customer Since:</strong><br>{{ customer.created_at.strftime('%d %b %Y') }}</div></div><div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-server"></i> Registered Equipment</div></div>{% if customer.equipment %}<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Category</th><th>Brand</th><th>Model</th><th>Status</th></tr></thead><tbody>{% for item in customer.equipment %}<tr><td>{{ item.category }}</td><td><a href="{{ url_for('equipment_detail', id=item.id) }}"
+   style="color:var(--primary);font-weight:600;text-decoration:none;">
+    {{ item.brand or '-' }}
+</a></td><td>{{ item.model or '-' }}</td><td><span class="status-badge status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<p style="color:var(--text-muted);">No equipment registered for this customer.</p>{% endif %}</div>{% endblock %}

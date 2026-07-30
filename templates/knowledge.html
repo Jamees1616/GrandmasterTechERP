@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="page-title">
+        <h2>Knowledge Base</h2>
+        <p>Your repair wisdom — every fix makes you stronger</p>
+    </div>
+</div>
+
+<div class="stats-grid" style="margin-bottom: 24px;">
+    <div class="card" style="text-align: center;">
+        <div class="card-icon blue" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="card-value blue">Coming</div>
+        <div class="card-label">Knowledge Articles</div>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div class="card-icon orange" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-bug"></i>
+        </div>
+        <div class="card-value orange">Soon</div>
+        <div class="card-label">Common Fixes</div>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div class="card-icon green" style="margin: 0 auto 12px; width: 50px; height: 50px; font-size: 22px;">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="card-value green">Future</div>
+        <div class="card-label">AI Assistant</div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="text-align: center; padding: 64px 32px;">
+        <div style="width: 120px; height: 120px; margin: 0 auto 24px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; box-shadow: 0 0 40px rgba(0, 212, 255, 0.3); animation: pulse 2s infinite;">
+            <i class="fas fa-brain"></i>
+        </div>
+        <h3 style="font-size: 24px; margin-bottom: 12px; background: linear-gradient(135deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Knowledge Base Coming Soon</h3>
+        <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 24px; line-height: 1.6;">
+            This is where your repair expertise will grow. Every diagnosis, every fix, every part you use — 
+            it all feeds into a powerful knowledge system. Eventually, an AI assistant will learn from your 
+            work and help you troubleshoot faster.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 700px; margin: 0 auto; text-align: left;">
+            <div style="background: var(--dark); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                <i class="fas fa-book" style="color: var(--primary); margin-bottom: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 600; margin-bottom: 4px;">Repair Guides</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Step-by-step fixes for common issues</div>
+            </div>
+            <div style="background: var(--dark); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                <i class="fas fa-search" style="color: var(--secondary); margin-bottom: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 600; margin-bottom: 4px;">Error Code Lookup</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Quick reference for error messages</div>
+            </div>
+            <div style="background: var(--dark); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                <i class="fas fa-puzzle-piece" style="color: var(--accent); margin-bottom: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 600; margin-bottom: 4px;">Parts Database</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Compatible parts and suppliers</div>
+            </div>
+            <div style="background: var(--dark); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                <i class="fas fa-robot" style="color: var(--success); margin-bottom: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 600; margin-bottom: 4px;">AI Troubleshooter</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Smart diagnosis suggestions</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.3); }
+    50% { box-shadow: 0 0 60px rgba(0, 212, 255, 0.5); }
+}
+</style>
+{% endblock %}

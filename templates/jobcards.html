@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="page-title">
+        <h2>Job Cards</h2>
+        <p>Track, diagnose, and repair — your workflow command center</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addJobModal')">
+        <i class="fas fa-plus"></i> New Job Card
+    </button>
+</div>
+
+<div class="card">
+    {% if jobs %}
+    <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <table class="data-table" style="min-width:720px;">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Equipment</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td style="font-weight: 600;">{{ job.title }}</td>
+                <td>
+                    <i class="fas fa-server" style="color: var(--accent); margin-right: 6px;"></i>
+                    {{ job.equipment.brand or 'Unknown' }} {{ job.equipment.model or '' }}
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                        <i class="fas fa-user" style="margin-right: 4px;"></i>{{ job.equipment.customer.name }}
+                    </div>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ job.status|lower|replace(' ', '-') }}">
+                        {{ job.status }}
+                    </span>
+                </td>
+                <td class="priority-{{ job.priority|lower }}">
+                    <i class="fas fa-flag" style="margin-right: 4px;"></i>{{ job.priority }}
+                </td>
+                <td style="color: var(--text-muted);">{{ job.created_at.strftime('%d %b %Y') }}</td>
+                <td>
+                    <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="openEditModal({{ job.id }})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 48px; color: var(--text-muted);">
+        <i class="fas fa-clipboard-list" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+        <p>No job cards yet. Create your first repair job!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Job Modal -->
+<div class="modal-overlay" id="addJobModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-file-medical" style="color: var(--primary); margin-right: 8px;"></i>Create New Job Card</h3>
+            <button class="modal-close" onclick="closeModal('addJobModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('add_jobcard') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label">Equipment *</label>
+                <select name="equipment_id" class="form-select" required>
+                    <option value="">Select equipment...</option>
+                    {% for item in equipment %}
+                    <option value="{{ item.id }}">
+                        {{ item.brand or 'Unknown' }} {{ item.model or '' }} 
+                        ({{ item.category }}) — {{ item.customer.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Job Title *</label>
+                <input type="text" name="title" class="form-input" required placeholder="e.g. Paper Jam Repair, Network Config">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="Normal">Normal</option>
+                    <option value="High">High</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Problem Description</label>
+                <textarea name="problem_description" class="form-textarea" placeholder="Describe the issue the customer reported..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addJobModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create Job Card</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Job Modal -->
+
+<div class="modal-overlay" id="editJobModal">
+    <div class="modal" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-tools" style="color: var(--secondary); margin-right: 8px;"></i>
+                Update Job Card
+            </h3>
+            <button type="button" class="modal-close" onclick="closeModal('editJobModal')">&times;</button>
+        </div>
+
+        <!-- JOB CARD UPDATE FORM -->
+        <form id="editJobForm" method="POST">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+                <div class="form-group">
+                    <label class="form-label">Job Title</label>
+                    <input type="text" name="title" id="edit_title" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" id="edit_status" class="form-select">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select name="priority" id="edit_priority" class="form-select">
+                    <option value="Normal">Normal</option>
+                    <option value="High">High</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Problem Description</label>
+                <textarea name="problem_description"
+                          id="edit_problem"
+                          class="form-textarea"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Diagnosis</label>
+                <textarea name="diagnosis"
+                          id="edit_diagnosis"
+                          class="form-textarea"
+                          placeholder="What did you find? Root cause analysis..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Repair Process</label>
+                <textarea name="repair_process"
+                          id="edit_repair"
+                          class="form-textarea"
+                          placeholder="Step-by-step what you did to fix it..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Parts Used</label>
+                <textarea name="parts_used"
+                          id="edit_parts"
+                          class="form-textarea"
+                          placeholder="List any parts, toners, cables, etc. used..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button"
+                        class="btn btn-secondary"
+                        onclick="closeModal('editJobModal')">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Update Job Card
+                </button>
+            </div>
+
+        </form>
+
+        <!-- ATTACHMENTS SECTION - SEPARATE FORM -->
+        <div class="form-group"
+             style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+
+            <label class="form-label">
+                <i class="fas fa-paperclip"
+                   style="color: var(--primary); margin-right: 6px;"></i>
+                Repair Evidence & Reference Files
+            </label>
+
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                Store photos and documents for future reference, service history, and repair documentation.
+            </p>
+
+            <!-- EXISTING ATTACHMENTS -->
+            <div id="jobAttachmentsList"
+                 style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+            </div>
+
+            <!-- ATTACHMENT UPLOAD FORM -->
+            <form id="attachmentUploadForm"
+                  method="POST"
+                  enctype="multipart/form-data">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+
+                    <select name="category"
+                            class="form-select"
+                            required>
+                        <option value="Before Repair">Before Repair</option>
+                        <option value="During Repair">During Repair</option>
+                        <option value="After Repair">After Repair</option>
+                        <option value="Parts / Components">Parts / Components</option>
+                        <option value="Document">Document</option>
+                        <option value="Reference">Reference</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                    <input type="file"
+                           name="file"
+                           class="form-input"
+                           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                           capture="environment"
+                           required>
+
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        style="margin-top: 12px;">
+                    <i class="fas fa-camera"></i>
+                    Capture / Upload
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+// Job data for editing
+const jobsData = {
+{% for job in jobs %}
+{{ job.id }}: {
+    title: {{ job.title|tojson }},
+    status: {{ job.status|tojson }},
+    priority: {{ job.priority|tojson }},
+    problem: {{ (job.problem_description or '')|tojson }},
+    diagnosis: {{ (job.diagnosis or '')|tojson }},
+    repair: {{ (job.repair_process or '')|tojson }},
+    parts: {{ (job.parts_used or '')|tojson }},
+    attachments: [
+{% for attachment in job.attachments %}
+        {
+            id: {{ attachment.id }},
+            filename: {{ attachment.filename|tojson }},
+            original_filename: {{ (attachment.original_filename or attachment.filename)|tojson }},
+            category: {{ (attachment.category or 'Other')|tojson }},
+            file_type: {{ (attachment.file_type or '')|tojson }},
+            uploaded_at: {{ attachment.uploaded_at.strftime('%d %b %Y %H:%M')|tojson }}
+        }{% if not loop.last %},{% endif %}
+{% endfor %}
+    ]
+}{% if not loop.last %},{% endif %}
+{% endfor %}
+};
+
+function openEditModal(jobId) {
+    const job = jobsData[jobId];
+
+    if (!job) {
+        console.error('Job not found:', jobId);
+        return;
+    }
+
+    // Main Job Card edit form
+    document.getElementById('editJobForm').action =
+        `/jobcards/update/${jobId}`;
+
+    // Attachment upload form
+    const attachmentForm =
+        document.getElementById('attachmentUploadForm');
+
+    if (attachmentForm) {
+        attachmentForm.action =
+            `/jobcards/${jobId}/attachments/upload`;
+    }
+
+    // Populate Job Card fields
+    document.getElementById('edit_title').value = job.title || '';
+    document.getElementById('edit_status').value = job.status || 'Pending';
+    document.getElementById('edit_priority').value = job.priority || 'Normal';
+    document.getElementById('edit_problem').value = job.problem || '';
+    document.getElementById('edit_diagnosis').value = job.diagnosis || '';
+    document.getElementById('edit_repair').value = job.repair || '';
+    document.getElementById('edit_parts').value = job.parts || '';
+
+    // Display existing attachments
+    const attachmentsList =
+        document.getElementById('jobAttachmentsList');
+
+    if (attachmentsList) {
+        attachmentsList.innerHTML = '';
+
+        if (job.attachments && job.attachments.length > 0) {
+            job.attachments.forEach(function(attachment) {
+                const item = document.createElement('div');
+
+                item.style.padding = '12px';
+                item.style.border = '1px solid var(--border)';
+                item.style.borderRadius = '8px';
+                item.style.marginBottom = '8px';
+
+                item.innerHTML =
+                    '<div style="font-weight:600;">' +
+                    '<i class="fas fa-paperclip" style="color:var(--primary);margin-right:6px;"></i>' +
+                    attachment.original_filename +
+                    '</div>' +
+
+                    '<div style="font-size:12px;color:var(--text-muted);margin-top:5px;">' +
+                    '<strong>' + attachment.category + '</strong>' +
+                    ' • ' + attachment.uploaded_at +
+                    '</div>' +
+
+                    '<a href="/jobcards/attachments/' +
+                    encodeURIComponent(attachment.filename) +
+                    '" target="_blank" class="btn btn-secondary" ' +
+                    'style="display:inline-block;margin-top:8px;padding:5px 10px;font-size:11px;">' +
+                    '<i class="fas fa-eye"></i> View' +
+                    '</a>';
+
+                attachmentsList.appendChild(item);
+            });
+        } else {
+            attachmentsList.innerHTML =
+                '<div style="padding:12px;color:var(--text-muted);background:var(--card);border-radius:8px;">' +
+                '<i class="fas fa-folder-open"></i> ' +
+                'No attachments uploaded yet.' +
+                '</div>';
+        }
+    }
+
+    // Finally open the Edit modal
+    openModal('editJobModal');
+}
+
+
+// AJAX Job Attachment Upload
+const attachmentForm = document.getElementById('attachmentUploadForm');
+
+if (attachmentForm) {
+    attachmentForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const fileInput = attachmentForm.querySelector('input[name="file"]');
+        const categoryInput = attachmentForm.querySelector('select[name="category"]');
+        const uploadButton = attachmentForm.querySelector('button[type="submit"]');
+        const attachmentsList = document.getElementById('jobAttachmentsList');
+
+        if (!fileInput || !fileInput.files.length) {
+            alert('Please select a photo or document first.');
+            return false;
+        }
+
+        if (!attachmentForm.action) {
+            alert('Please open the Job Card again before uploading.');
+            return false;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('category', categoryInput.value);
+
+        const originalButtonHTML = uploadButton.innerHTML;
+
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+        try {
+            const response = await fetch(attachmentForm.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Server returned HTTP ' + response.status);
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Upload failed.');
+            }
+
+            const attachment = data.attachment;
+
+            const item = document.createElement('div');
+
+            item.style.cssText =
+                'padding:12px; border:1px solid var(--border); ' +
+                'border-radius:8px; margin-bottom:8px;';
+
+            const isImage =
+                attachment.file_type &&
+                attachment.file_type.startsWith('image/');
+
+            item.innerHTML = `
+                ${isImage ? `
+                    <img src="${attachment.view_url}"
+                         alt="${attachment.original_filename}"
+                         style="width:140px;height:100px;object-fit:cover;
+                         border-radius:8px;display:block;margin-bottom:8px;">
+                ` : `
+                    <div style="font-size:40px;margin-bottom:8px;">
+                        <i class="fas fa-file"></i>
+                    </div>
+                `}
+
+                <div style="font-weight:600;">
+                    <i class="fas fa-paperclip"
+                       style="color:var(--primary);margin-right:6px;"></i>
+                    ${attachment.original_filename}
+                </div>
+
+                <div style="font-size:12px;color:var(--text-muted);margin-top:5px;">
+                    <strong>${attachment.category}</strong>
+                </div>
+
+                <div style="margin-top:8px;">
+                    <a href="${attachment.view_url}"
+                       target="_blank"
+                       class="btn btn-secondary"
+                       style="display:inline-block;padding:5px 10px;font-size:11px;">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+
+                    <a href="${attachment.download_url}"
+                       class="btn btn-secondary"
+                       style="display:inline-block;padding:5px 10px;font-size:11px;">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            `;
+
+            attachmentsList.prepend(item);
+
+            fileInput.value = '';
+
+            uploadButton.innerHTML =
+                '<i class="fas fa-check"></i> Uploaded';
+
+            setTimeout(() => {
+                uploadButton.innerHTML = originalButtonHTML;
+                uploadButton.disabled = false;
+            }, 1500);
+
+        } catch (error) {
+            console.error('Attachment upload error:', error);
+
+            alert(
+                'Upload failed. The file may still have been saved. ' +
+                'Please check the Job Card attachments.'
+            );
+
+            uploadButton.innerHTML = originalButtonHTML;
+            uploadButton.disabled = false;
+        }
+
+        return false;
+    });
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="page-title">
+        <h2>Customers</h2>
+        <p>Manage your client relationships</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addCustomerModal')">
+        <i class="fas fa-plus"></i> Add Customer
+    </button>
+</div>
+
+<div class="card">
+    {% if customers %}
+    <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+<table class="data-table" style="min-width:720px;">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Equipment</th>
+                <th>Joined</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td style="font-weight: 600;">
+                    <i class="fas fa-user-circle" style="color: var(--primary); margin-right: 8px;"></i>
+                    <a href="{{ url_for('customer_detail', id=customer.id) }}" style="color:var(--primary);font-weight:600;text-decoration:none;">{{ customer.name }}</a>
+                </td>
+                <td>{{ customer.company or '-' }}</td>
+                <td>{{ customer.phone or '-' }}</td>
+                <td>{{ customer.email or '-' }}</td>
+                <td>
+                    <span class="status-badge" style="background: rgba(124, 58, 237, 0.1); color: var(--accent);">
+                        {{ customer.equipment|length }} devices
+                    </span>
+                </td>
+                <td style="color: var(--text-muted);">{{ customer.created_at.strftime('%d %b %Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% else %}
+    <div style="text-align: center; padding: 48px; color: var(--text-muted);">
+        <i class="fas fa-users" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+        <p>No customers yet. Add your first client!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal-overlay" id="addCustomerModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fas fa-user-plus" style="color: var(--primary); margin-right: 8px;"></i>Add New Customer</h3>
+            <button class="modal-close" onclick="closeModal('addCustomerModal')">&times;</button>
+        </div>
+        <form action="{{ url_for('add_customer') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" name="name" class="form-input" required placeholder="e.g. John Doe">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Company</label>
+                <input type="text" name="company" class="form-input" placeholder="e.g. ABC Ltd">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-input" placeholder="e.g. 0995 878 385">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" placeholder="e.g. john@email.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <textarea name="address" class="form-textarea" placeholder="Customer's address..."></textarea>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addCustomerModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+// Close modal on outside click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+});
+</script>
+{% endblock %}
