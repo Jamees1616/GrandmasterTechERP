@@ -4,3 +4,12 @@ __pycache__/
 *.pyc
 instance/grandmaster_tech.db
 instance/uploads/
+
+# Development backup files
+*.backup
+*.backup2
+*.before-*
+*.cards
+*.stage1
+*.stage1-safe
+*.safe-backup
