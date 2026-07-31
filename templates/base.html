@@ -113,6 +113,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 @media(min-width:768px){.mobile-header,.bottom-nav{display:none}.sidebar{position:fixed;left:0;width:260px;height:100vh}.main-content{margin-left:260px;padding:24px 32px}.user-info{display:flex}.stats-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.modal-overlay{left:260px;width:calc(100% - 260px);align-items:center}.modal{border-radius:20px;max-width:600px;max-height:90vh;animation:modalIn 0.3s ease}@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}}
 {% block extra_css %}{% endblock %}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="glow-orb"></div>
@@ -148,6 +149,10 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 <i class="fas fa-clipboard-list"></i><span>Job Cards</span>
 <span class="badge">{{ pending_jobs or 0 }}</span>
 </a>
+<div class="nav-section">Reports</div>
+<a href="{{ url_for('reports') }}" class="nav-item {% if request.endpoint == 'reports' %}active{% endif %}">
+<i class="fas fa-chart-bar"></i><span>Reports</span>
+</a>
 <div class="nav-section">Knowledge</div>
 <a href="{{ url_for('knowledge') }}" class="nav-item {% if request.endpoint == 'knowledge' %}active{% endif %}">
 <i class="fas fa-book"></i><span>Knowledge Base</span>
@@ -181,6 +186,9 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 </a>
 <a href="{{ url_for('jobcards') }}" class="bottom-nav-item {% if request.endpoint == 'jobcards' %}active{% endif %}">
 <i class="fas fa-clipboard-list"></i><span>Jobs</span>
+</a>
+<a href="{{ url_for('reports') }}" class="bottom-nav-item {% if request.endpoint == 'reports' %}active{% endif %}">
+<i class="fas fa-chart-bar"></i><span>Reports</span>
 </a>
 <a href="{{ url_for('knowledge') }}" class="bottom-nav-item {% if request.endpoint == 'knowledge' %}active{% endif %}">
 <i class="fas fa-book"></i><span>Knowledge</span>

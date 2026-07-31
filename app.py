@@ -426,6 +426,199 @@ def delete_job_attachment(attachment_id):
     return redirect(url_for('jobcards'))
 
 
+@app.route('/reports')
+def reports():
+    from sqlalchemy import func
+    from datetime import datetime
+
+    now = datetime.utcnow()
+    selected_month = request.args.get('month', now.month, type=int)
+    selected_year = request.args.get('year', now.year, type=int)
+
+    # Keep month within valid range
+    if selected_month < 1 or selected_month > 12:
+        selected_month = now.month
+
+    # Monthly date range
+    start_date = datetime(selected_year, selected_month, 1)
+
+    if selected_month == 12:
+        end_date = datetime(selected_year + 1, 1, 1)
+    else:
+        end_date = datetime(selected_year, selected_month + 1, 1)
+
+    monthly_jobs = JobCard.query.filter(
+        JobCard.created_at >= start_date,
+        JobCard.created_at < end_date
+    ).all()
+
+    monthly_customers = Customer.query.filter(
+        Customer.created_at >= start_date,
+        Customer.created_at < end_date
+    ).all()
+
+    monthly_equipment = Equipment.query.filter(
+        Equipment.created_at >= start_date,
+        Equipment.created_at < end_date
+    ).all()
+
+    total_jobs = len(monthly_jobs)
+    pending_jobs = sum(1 for job in monthly_jobs if job.status == 'Pending')
+    in_progress_jobs = sum(1 for job in monthly_jobs if job.status == 'In Progress')
+    completed_jobs = sum(1 for job in monthly_jobs if job.status == 'Completed')
+
+    completion_rate = (
+        round((completed_jobs / total_jobs) * 100, 1)
+        if total_jobs else 0
+    )
+
+    # Jobs by priority
+    priority_counts = {}
+    for job in monthly_jobs:
+        priority_counts[job.priority] = priority_counts.get(job.priority, 0) + 1
+
+    # Jobs by equipment category
+    category_counts = {}
+    for job in monthly_jobs:
+        category = job.equipment.category if job.equipment else 'Unknown'
+        category_counts[category] = category_counts.get(category, 0) + 1
+
+    # Customer activity
+    customer_counts = {}
+    for job in monthly_jobs:
+        if job.equipment and job.equipment.customer:
+            customer_name = job.equipment.customer.name
+            customer_counts[customer_name] = (
+                customer_counts.get(customer_name, 0) + 1
+            )
+
+    top_customers = sorted(
+        customer_counts.items(),
+        key=lambda item: item[1],
+        reverse=True
+    )[:10]
+
+    return render_template(
+        'reports.html',
+        selected_month=selected_month,
+        selected_year=selected_year,
+        total_jobs=total_jobs,
+        total_customers=len(monthly_customers),
+        total_equipment=len(monthly_equipment),
+        pending_jobs=pending_jobs,
+        in_progress_jobs=in_progress_jobs,
+        completed_jobs=completed_jobs,
+        completion_rate=completion_rate,
+        priority_counts=priority_counts,
+        category_counts=category_counts,
+        top_customers=top_customers
+    )
+
+
+@app.route('/reports/download/csv')
+def download_reports_csv():
+    import csv
+    from io import StringIO
+    from datetime import datetime
+    from flask import Response
+
+    now = datetime.utcnow()
+
+    selected_month = request.args.get('month', now.month, type=int)
+    selected_year = request.args.get('year', now.year, type=int)
+
+    if selected_month < 1 or selected_month > 12:
+        selected_month = now.month
+
+    start_date = datetime(selected_year, selected_month, 1)
+
+    if selected_month == 12:
+        end_date = datetime(selected_year + 1, 1, 1)
+    else:
+        end_date = datetime(selected_year, selected_month + 1, 1)
+
+    monthly_jobs = JobCard.query.filter(
+        JobCard.created_at >= start_date,
+        JobCard.created_at < end_date
+    ).all()
+
+    monthly_customers = Customer.query.filter(
+        Customer.created_at >= start_date,
+        Customer.created_at < end_date
+    ).all()
+
+    monthly_equipment = Equipment.query.filter(
+        Equipment.created_at >= start_date,
+        Equipment.created_at < end_date
+    ).all()
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(['GRANDMASTER TECH ERP'])
+    writer.writerow(['Monthly Service & Repair Report'])
+    writer.writerow([
+        'Report Period',
+        f'{selected_year}-{selected_month:02d}'
+    ])
+    writer.writerow([])
+
+    writer.writerow(['SUMMARY'])
+    writer.writerow(['Total Jobs', len(monthly_jobs)])
+    writer.writerow(['Completed Jobs', sum(
+        1 for job in monthly_jobs if job.status == 'Completed'
+    )])
+    writer.writerow(['Pending Jobs', sum(
+        1 for job in monthly_jobs if job.status == 'Pending'
+    )])
+    writer.writerow(['In Progress Jobs', sum(
+        1 for job in monthly_jobs if job.status == 'In Progress'
+    )])
+    writer.writerow(['New Customers', len(monthly_customers)])
+    writer.writerow(['New Equipment', len(monthly_equipment)])
+    writer.writerow([])
+
+    writer.writerow(['JOB DETAILS'])
+    writer.writerow([
+        'Job Title',
+        'Equipment Category',
+        'Brand',
+        'Model',
+        'Status',
+        'Priority',
+        'Date'
+    ])
+
+    for job in monthly_jobs:
+        equipment = job.equipment
+
+        writer.writerow([
+            job.title,
+            equipment.category if equipment else '',
+            equipment.brand if equipment else '',
+            equipment.model if equipment else '',
+            job.status,
+            job.priority,
+            job.created_at.strftime('%Y-%m-%d')
+            if job.created_at else ''
+        ])
+
+    csv_data = output.getvalue()
+
+    filename = (
+        f'Grandmaster_Tech_ERP_Report_'
+        f'{selected_year}_{selected_month:02d}.csv'
+    )
+
+    return Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition':
+                f'attachment; filename="{filename}"'
+        }
+    )
+
 @app.route('/knowledge')
 def knowledge():
     return render_template('knowledge.html')
