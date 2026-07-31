@@ -88,7 +88,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .form-input,.form-select,.form-textarea{width:100%;padding:12px 14px;background:var(--dark);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;transition:all 0.3s ease;-webkit-appearance:none}
 .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
 .form-textarea{min-height:80px;resize:vertical}
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:1000;align-items:flex-end;justify-content:center;overflow:hidden}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:3000;align-items:flex-end;justify-content:center;overflow:hidden}
 .modal-overlay.active{display:flex}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px calc(100px + env(safe-area-inset-bottom)) 20px;width:100%;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:slideUp 0.3s ease;position:relative}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -110,7 +110,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--darker)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-@media(min-width:768px){.mobile-header,.bottom-nav{display:none}.sidebar{position:fixed;left:0;width:260px;height:100vh}.main-content{margin-left:260px;padding:24px 32px}.user-info{display:flex}.stats-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.modal-overlay{align-items:center}.modal{border-radius:20px;max-width:600px;max-height:90vh;animation:modalIn 0.3s ease}@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}}
+@media(min-width:768px){.mobile-header,.bottom-nav{display:none}.sidebar{position:fixed;left:0;width:260px;height:100vh}.main-content{margin-left:260px;padding:24px 32px}.user-info{display:flex}.stats-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.modal-overlay{left:260px;width:calc(100% - 260px);align-items:center}.modal{border-radius:20px;max-width:600px;max-height:90vh;animation:modalIn 0.3s ease}@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}}
 {% block extra_css %}{% endblock %}
 </style>
 </head>
@@ -254,8 +254,14 @@ window.addEventListener('resize', () => {
     }
 });
 function openModal(id){
-document.body.classList.add('modal-open');
-document.getElementById(id).classList.add('active');
+    // Close mobile sidebar before opening any modal
+    closeSidebar();
+
+    const modal = document.getElementById(id);
+    if (!modal) return;
+
+    document.body.classList.add('modal-open');
+    modal.classList.add('active');
 }
 function closeModal(id){
 document.body.classList.remove('modal-open');

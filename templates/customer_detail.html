@@ -1,4 +1,64 @@
-{% extends "base.html" %}{% block title %}Customer Details - Grandmaster Tech ERP{% endblock %}{% block content %}<div class="top-bar"><div class="page-title"><h2>Customer Details</h2><p>View customer information and service history</p></div></div><div class="card">
+{% extends "base.html" %}{% block title %}Customer Details - Grandmaster Tech ERP{% endblock %}
+{% block extra_css %}
+<style>
+.customer-details-page {
+    padding-bottom: 30px;
+}
+
+.customer-details-page > .card {
+    margin-bottom: 12px;
+}
+
+.customer-details-page > .card:last-child {
+    margin-bottom: 0;
+}
+
+.customer-history-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+
+.customer-history-table table {
+    min-width: 750px;
+}
+
+@media (max-width: 767px) {
+    .customer-details-page {
+        padding-bottom: 100px;
+    }
+
+    .customer-details-page > .card {
+        margin-bottom: 10px;
+        border-radius: 14px;
+    }
+
+    .customer-details-page .card-header {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .customer-details-page .form-group {
+        margin-bottom: 12px;
+    }
+
+    .customer-history-table {
+        padding-bottom: 12px;
+    }
+}
+
+@media (min-width: 768px) {
+    .customer-details-page {
+        padding-bottom: 20px;
+    }
+
+    .customer-details-page > .card {
+        margin-bottom: 14px;
+    }
+}
+</style>
+{% endblock %}{% block content %}<div class="customer-details-page"><div class="top-bar"><div class="page-title"><h2>Customer Details</h2><p>View customer information and service history</p></div></div><div class="card">
 <div class="card-header">
 <div class="card-title"><i class="fas fa-user"></i> Customer Information</div>
 <a href="{{ url_for('customers') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
@@ -64,7 +124,7 @@
     {% endfor %}
 
     {% if all_jobs %}
-    <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <div class="customer-history-table">
         <table class="data-table" style="min-width:750px;">
             <thead>
                 <tr>
@@ -106,3 +166,4 @@
 </div>
 
 {% endblock %}
+</div>
