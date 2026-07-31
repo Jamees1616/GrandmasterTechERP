@@ -29,6 +29,38 @@ SUPABASE_BUCKET = 'job-attachments'
 
 db = SQLAlchemy(app)
 
+
+# ========== DATABASE MIGRATION ==========
+def migrate_customer_demographics():
+    """Add customer demographic columns if they do not exist."""
+    from sqlalchemy import text
+
+    try:
+        with app.app_context():
+            with db.engine.begin() as connection:
+                columns = {
+                    "gender": "VARCHAR(30)",
+                    "age_group": "VARCHAR(30)",
+                    "district": "VARCHAR(100)",
+                    "customer_type": "VARCHAR(50)",
+                }
+
+                for column, column_type in columns.items():
+                    connection.execute(
+                        text(
+                            f"ALTER TABLE customer "
+                            f"ADD COLUMN IF NOT EXISTS {column} {column_type}"
+                        )
+                    )
+
+                print("SUCCESS: Customer demographics database migration complete.")
+
+    except Exception as e:
+        print(f"WARNING: Customer demographics migration failed: {e}")
+
+
+migrate_customer_demographics()
+
 # ========== DATABASE MODELS ==========
 
 class Customer(db.Model):
