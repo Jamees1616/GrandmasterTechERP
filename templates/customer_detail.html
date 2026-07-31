@@ -90,6 +90,63 @@
 <textarea name="address" class="form-textarea" placeholder="Customer address">{{ customer.address or '' }}</textarea>
 </div>
 
+<div style="margin:24px 0 16px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+    <h3 style="margin:0; font-size:16px;">
+        <i class="fas fa-chart-pie" style="color:var(--primary); margin-right:8px;"></i>
+        Customer Demographics
+    </h3>
+    <p style="margin:6px 0 0; color:var(--text-muted); font-size:13px;">
+        This information is used for demographic analysis and reporting.
+    </p>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">
+
+    <div class="form-group">
+        <label class="form-label">Gender</label>
+        <select name="gender" class="form-select">
+            <option value="">Not specified</option>
+            <option value="Male" {% if customer.gender == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if customer.gender == 'Female' %}selected{% endif %}>Female</option>
+            <option value="Other" {% if customer.gender == 'Other' %}selected{% endif %}>Other</option>
+            <option value="Prefer not to say" {% if customer.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Age Group</label>
+        <select name="age_group" class="form-select">
+            <option value="">Not specified</option>
+            <option value="Under 18" {% if customer.age_group == 'Under 18' %}selected{% endif %}>Under 18</option>
+            <option value="18-24" {% if customer.age_group == '18-24' %}selected{% endif %}>18–24</option>
+            <option value="25-34" {% if customer.age_group == '25-34' %}selected{% endif %}>25–34</option>
+            <option value="35-44" {% if customer.age_group == '35-44' %}selected{% endif %}>35–44</option>
+            <option value="45-54" {% if customer.age_group == '45-54' %}selected{% endif %}>45–54</option>
+            <option value="55+" {% if customer.age_group == '55+' %}selected{% endif %}>55+</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">District</label>
+        <input type="text" name="district" class="form-input"
+               value="{{ customer.district or '' }}"
+               placeholder="e.g. Lilongwe">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Customer Type</label>
+        <select name="customer_type" class="form-select">
+            <option value="">Not specified</option>
+            <option value="Individual" {% if customer.customer_type == 'Individual' %}selected{% endif %}>Individual</option>
+            <option value="Business" {% if customer.customer_type == 'Business' %}selected{% endif %}>Business</option>
+            <option value="Government" {% if customer.customer_type == 'Government' %}selected{% endif %}>Government</option>
+            <option value="NGO/Organization" {% if customer.customer_type == 'NGO/Organization' %}selected{% endif %}>NGO / Organization</option>
+            <option value="Other" {% if customer.customer_type == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+    </div>
+
+</div>
+
 <div class="form-group">
 <label class="form-label">Customer Since</label>
 <div style="padding:12px 14px;background:var(--dark);border:1px solid var(--border);border-radius:10px;color:var(--text-muted);">

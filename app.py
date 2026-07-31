@@ -38,6 +38,10 @@ class Customer(db.Model):
     email = db.Column(db.String(100))
     company = db.Column(db.String(100))
     address = db.Column(db.Text)
+    gender = db.Column(db.String(30))
+    age_group = db.Column(db.String(30))
+    district = db.Column(db.String(100))
+    customer_type = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     equipment = db.relationship('Equipment', backref='customer', lazy=True)
 
@@ -133,6 +137,10 @@ def update_customer(id):
     customer.email = request.form.get('email', '').strip()
     customer.company = request.form.get('company', '').strip()
     customer.address = request.form.get('address', '').strip()
+    customer.gender = request.form.get('gender', '').strip()
+    customer.age_group = request.form.get('age_group', '').strip()
+    customer.district = request.form.get('district', '').strip()
+    customer.customer_type = request.form.get('customer_type', '').strip()
 
     if not customer.name:
         flash('Customer name is required.', 'danger')
@@ -149,7 +157,11 @@ def add_customer():
         phone=request.form['phone'],
         email=request.form['email'],
         company=request.form['company'],
-        address=request.form['address']
+        address=request.form['address'],
+        gender=request.form.get('gender', '').strip(),
+        age_group=request.form.get('age_group', '').strip(),
+        district=request.form.get('district', '').strip(),
+        customer_type=request.form.get('customer_type', '').strip()
     )
     db.session.add(customer)
     db.session.commit()
