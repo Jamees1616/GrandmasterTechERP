@@ -276,6 +276,48 @@
                           placeholder="List any parts, toners, cables, etc. used..."></textarea>
             </div>
 
+            <!-- FINANCIAL SECTION -->
+            <div class="attachment-section" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <h4 style="margin-bottom: 16px;">
+                    <i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 8px;"></i>
+                    Financial Details (MWK)
+                </h4>
+
+                <div class="edit-job-grid">
+
+                    <div class="form-group">
+                        <label class="form-label">Service Charge (MK)</label>
+                        <input type="number" name="service_charge" id="edit_service_charge" class="form-input" min="0" step="0.01" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Parts Cost (MK)</label>
+                        <input type="number" name="parts_cost" id="edit_parts_cost" class="form-input" min="0" step="0.01" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Total Cost (MK)</label>
+                        <input type="number" id="edit_total_cost" class="form-input" value="0" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amount Paid (MK)</label>
+                        <input type="number" name="amount_paid" id="edit_amount_paid" class="form-input" min="0" step="0.01" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Balance (MK)</label>
+                        <input type="number" id="edit_balance" class="form-input" value="0" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Profit (MK)</label>
+                        <input type="number" id="edit_profit" class="form-input" value="0" readonly>
+                    </div>
+
+                </div>
+            </div>
+
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button type="button"
                         class="btn btn-secondary"
@@ -371,6 +413,14 @@ const jobsData = {
     diagnosis: {{ (job.diagnosis or '')|tojson }},
     repair: {{ (job.repair_process or '')|tojson }},
     parts: {{ (job.parts_used or '')|tojson }},
+
+    service_charge: {{ job.service_charge or 0 }},
+    parts_cost: {{ job.parts_cost or 0 }},
+    total_cost: {{ job.total_cost or 0 }},
+    amount_paid: {{ job.amount_paid or 0 }},
+    balance: {{ job.balance or 0 }},
+    profit: {{ job.profit or 0 }},
+
     attachments: [
 {% for attachment in job.attachments %}
         {
@@ -386,6 +436,30 @@ const jobsData = {
 }{% if not loop.last %},{% endif %}
 {% endfor %}
 };
+
+function calculateJobFinancials() {
+    const serviceCharge =
+        parseFloat(document.getElementById('edit_service_charge').value) || 0;
+
+    const partsCost =
+        parseFloat(document.getElementById('edit_parts_cost').value) || 0;
+
+    const amountPaid =
+        parseFloat(document.getElementById('edit_amount_paid').value) || 0;
+
+    const totalCost = serviceCharge + partsCost;
+    const balance = totalCost - amountPaid;
+    const profit = serviceCharge - partsCost;
+
+    document.getElementById('edit_total_cost').value =
+        totalCost.toFixed(2);
+
+    document.getElementById('edit_balance').value =
+        balance.toFixed(2);
+
+    document.getElementById('edit_profit').value =
+        profit.toFixed(2);
+}
 
 function openEditModal(jobId) {
     const job = jobsData[jobId];
@@ -416,6 +490,19 @@ function openEditModal(jobId) {
     document.getElementById('edit_diagnosis').value = job.diagnosis || '';
     document.getElementById('edit_repair').value = job.repair || '';
     document.getElementById('edit_parts').value = job.parts || '';
+
+    // Populate financial fields
+    document.getElementById('edit_service_charge').value =
+        job.service_charge || 0;
+
+    document.getElementById('edit_parts_cost').value =
+        job.parts_cost || 0;
+
+    document.getElementById('edit_amount_paid').value =
+        job.amount_paid || 0;
+
+    // Calculate financial totals
+    calculateJobFinancials();
 
     // Display existing attachments
     const attachmentsList =
@@ -481,6 +568,16 @@ function openEditModal(jobId) {
     openModal('editJobModal');
 }
 
+
+// Live financial calculations
+document.getElementById('edit_service_charge')
+    .addEventListener('input', calculateJobFinancials);
+
+document.getElementById('edit_parts_cost')
+    .addEventListener('input', calculateJobFinancials);
+
+document.getElementById('edit_amount_paid')
+    .addEventListener('input', calculateJobFinancials);
 
 // AJAX Job Attachment Upload
 const attachmentForm = document.getElementById('attachmentUploadForm');

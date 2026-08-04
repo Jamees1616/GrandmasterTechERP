@@ -38,42 +38,230 @@
 
 <div class="top-bar">
     <div class="page-title">
-        <h2><i class="fas fa-chart-bar" style="color: var(--primary); margin-right: 8px;"></i>Monthly Reports</h2>
-        <p>Analyse service activity, customers and equipment performance</p>
+        <h2>
+            <i class="fas fa-chart-bar" style="color:var(--primary); margin-right:8px;"></i>
+            Reports & Analytics
+        </h2>
+        <p>
+            Analyse service activity, financial performance and customer demographics
+        </p>
     </div>
 
-    <form method="GET" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <select name="month" class="form-select" style="width:auto; min-width:140px;">
+    <form method="GET"
+          style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+        <select name="report_type"
+                class="form-select"
+                onchange="toggleReportPeriod(this.value)"
+                style="width:auto; min-width:150px;">
+
+            <option value="monthly"
+                {% if report_type == 'monthly' %}selected{% endif %}>
+                Monthly
+            </option>
+
+            <option value="quarterly"
+                {% if report_type == 'quarterly' %}selected{% endif %}>
+                Quarterly
+            </option>
+
+            <option value="yearly"
+                {% if report_type == 'yearly' %}selected{% endif %}>
+                Yearly
+            </option>
+
+            <option value="all"
+                {% if report_type == 'all' %}selected{% endif %}>
+                All-Time
+            </option>
+
+        </select>
+
+        <select name="month"
+                id="monthSelect"
+                class="form-select"
+                style="width:auto; min-width:140px;">
+
             {% for month_number, month_name in [
                 (1, 'January'), (2, 'February'), (3, 'March'),
                 (4, 'April'), (5, 'May'), (6, 'June'),
                 (7, 'July'), (8, 'August'), (9, 'September'),
                 (10, 'October'), (11, 'November'), (12, 'December')
             ] %}
-            <option value="{{ month_number }}" {% if selected_month == month_number %}selected{% endif %}>
+
+            <option value="{{ month_number }}"
+                {% if selected_month == month_number %}selected{% endif %}>
                 {{ month_name }}
             </option>
+
             {% endfor %}
+
         </select>
 
-        <select name="year" class="form-select" style="width:auto; min-width:100px;">
+        <select name="quarter"
+                id="quarterSelect"
+                class="form-select"
+                style="width:auto; min-width:120px;">
+
+            <option value="1"
+                {% if selected_quarter == 1 %}selected{% endif %}>
+                Q1
+            </option>
+
+            <option value="2"
+                {% if selected_quarter == 2 %}selected{% endif %}>
+                Q2
+            </option>
+
+            <option value="3"
+                {% if selected_quarter == 3 %}selected{% endif %}>
+                Q3
+            </option>
+
+            <option value="4"
+                {% if selected_quarter == 4 %}selected{% endif %}>
+                Q4
+            </option>
+
+        </select>
+
+        <select name="year"
+                class="form-select"
+                style="width:auto; min-width:100px;">
+
             {% for year in range(selected_year - 3, selected_year + 2) %}
-            <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>
+
+            <option value="{{ year }}"
+                {% if selected_year == year %}selected{% endif %}>
                 {{ year }}
             </option>
+
             {% endfor %}
+
         </select>
 
-        <a href="{{ url_for('download_reports_csv', month=selected_month, year=selected_year) }}"
-           class="btn btn-secondary">
-            <i class="fas fa-file-csv"></i> Download CSV
-        </a>
+        <button type="submit"
+                class="btn btn-primary">
 
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-filter"></i> Generate
+            <i class="fas fa-chart-line"></i>
+            Generate
+
         </button>
+
     </form>
 </div>
+
+<!-- Report Export Actions -->
+<div class="card"
+     style="margin-top:20px;">
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-download"
+               style="color:var(--primary); margin-right:8px;"></i>
+
+            Download Report
+
+        </span>
+
+    </div>
+
+    <p style="color:var(--text-muted); margin:0 0 18px 0;">
+
+        Download the selected {{ report_period_label }}
+        report in your preferred format.
+
+    </p>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+        <a href="{{ url_for('download_reports_csv',
+                    report_type=report_type,
+                    month=selected_month,
+                    year=selected_year,
+                    quarter=selected_quarter) }}"
+           class="btn btn-secondary">
+
+            <i class="fas fa-file-csv"></i>
+            CSV
+
+        </a>
+
+        <a href="{{ url_for('download_reports_excel',
+                    report_type=report_type,
+                    month=selected_month,
+                    year=selected_year,
+                    quarter=selected_quarter) }}"
+           class="btn btn-secondary">
+
+            <i class="fas fa-file-excel"></i>
+            Excel
+
+        </a>
+
+        <a href="{{ url_for('download_reports_pdf',
+                    report_type=report_type,
+                    month=selected_month,
+                    year=selected_year,
+                    quarter=selected_quarter) }}"
+           class="btn btn-secondary">
+
+            <i class="fas fa-file-pdf"></i>
+            PDF
+
+        </a>
+
+        <a href="{{ url_for('download_reports_word',
+                    report_type=report_type,
+                    month=selected_month,
+                    year=selected_year,
+                    quarter=selected_quarter) }}"
+           class="btn btn-secondary">
+
+            <i class="fas fa-file-word"></i>
+            Word
+
+        </a>
+
+    </div>
+
+</div>
+
+<script>
+function toggleReportPeriod(type) {
+
+    const month = document.getElementById('monthSelect');
+    const quarter = document.getElementById('quarterSelect');
+
+    if (!month || !quarter) {
+        return;
+    }
+
+    month.style.display =
+        type === 'monthly' ? '' : 'none';
+
+    quarter.style.display =
+        type === 'quarterly' ? '' : 'none';
+}
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        const selector =
+            document.querySelector(
+                'select[name="report_type"]'
+            );
+
+        if (selector) {
+            toggleReportPeriod(selector.value);
+        }
+
+    }
+);
+</script>
 
 <!-- Report Summary -->
 <div class="stats-grid">
@@ -123,6 +311,332 @@
     </div>
 
 </div>
+
+<!-- Financial Performance (Malawian Kwacha) -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-money-bill-wave" style="color:var(--success); margin-right:8px;"></i>
+            Financial Performance (MWK)
+        </span>
+    </div>
+
+    <div class="stats-grid">
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Revenue</span>
+                <div class="card-icon green">
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+            <div class="card-value green">
+                MK {{ "{:,.2f}".format(total_revenue or 0) }}
+            </div>
+            <div class="card-label">Total service + parts charges</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Amount Paid</span>
+                <div class="card-icon blue">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+            </div>
+            <div class="card-value blue">
+                MK {{ "{:,.2f}".format(total_amount_paid or 0) }}
+            </div>
+            <div class="card-label">Payments received</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Outstanding</span>
+                <div class="card-icon orange">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+            <div class="card-value orange">
+                MK {{ "{:,.2f}".format(total_balance or 0) }}
+            </div>
+            <div class="card-label">Customer balances due</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Profit</span>
+                <div class="card-icon purple">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="card-value purple">
+                MK {{ "{:,.2f}".format(total_profit or 0) }}
+            </div>
+            <div class="card-label">Estimated service profit</div>
+        </div>
+
+    </div>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+            <span>
+                <i class="fas fa-tools" style="margin-right:8px;"></i>
+                Service Charges
+            </span>
+            <strong>MK {{ "{:,.2f}".format(total_service_charges or 0) }}</strong>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; padding:12px 0;">
+            <span>
+                <i class="fas fa-cogs" style="margin-right:8px;"></i>
+                Parts Cost
+            </span>
+            <strong>MK {{ "{:,.2f}".format(total_parts_cost or 0) }}</strong>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Customer Demographics -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-users" style="color:var(--primary); margin-right:8px;"></i>
+            Customer Demographics
+        </span>
+    </div>
+
+    <p style="color:var(--text-muted); margin:0 0 20px 0;">
+        Demographic profile of customers created during the selected reporting period.
+    </p>
+
+    <div class="stats-grid">
+
+        <!-- Gender -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Gender Distribution</span>
+                <div class="card-icon blue">
+                    <i class="fas fa-venus-mars"></i>
+                </div>
+            </div>
+
+            <div style="max-width:420px; margin:0 auto; padding:15px;">
+                <canvas id="genderChart"></canvas>
+            </div>
+
+            <div style="margin-top:15px;">
+                {% if gender_counts %}
+                    {% for label, count in gender_counts.items() %}
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+                        <span>{{ label }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:var(--text-muted);">No demographic data available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Age Group -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Age Group Distribution</span>
+                <div class="card-icon purple">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+
+            <div style="padding:15px;">
+                <canvas id="ageGroupChart"></canvas>
+            </div>
+
+            <div style="margin-top:15px;">
+                {% if age_group_counts %}
+                    {% for label, count in age_group_counts.items() %}
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+                        <span>{{ label }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:var(--text-muted);">No age-group data available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Customer Type -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Customer Type</span>
+                <div class="card-icon green">
+                    <i class="fas fa-building"></i>
+                </div>
+            </div>
+
+            <div style="max-width:420px; margin:0 auto; padding:15px;">
+                <canvas id="customerTypeChart"></canvas>
+            </div>
+
+            <div style="margin-top:15px;">
+                {% if customer_type_counts %}
+                    {% for label, count in customer_type_counts.items() %}
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+                        <span>{{ label }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:var(--text-muted);">No customer-type data available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- District -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Customers by District</span>
+                <div class="card-icon orange">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+            </div>
+
+            <div style="padding:15px;">
+                <canvas id="districtChart"></canvas>
+            </div>
+
+            <div style="margin-top:15px;">
+                {% if district_counts %}
+                    {% for label, count in district_counts.items() %}
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+                        <span>{{ label }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:var(--text-muted);">No district data available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Gender Distribution
+    const genderCtx = document.getElementById('genderChart');
+    if (genderCtx) {
+        new Chart(genderCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ gender_counts.keys() | list | tojson }},
+                datasets: [{
+                    data: {{ gender_counts.values() | list | tojson }}
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Age Group Distribution
+    const ageCtx = document.getElementById('ageGroupChart');
+    if (ageCtx) {
+        new Chart(ageCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ age_group_counts.keys() | list | tojson }},
+                datasets: [{
+                    label: 'Customers',
+                    data: {{ age_group_counts.values() | list | tojson }}
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Customer Type Distribution
+    const customerTypeCtx = document.getElementById('customerTypeChart');
+    if (customerTypeCtx) {
+        new Chart(customerTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ customer_type_counts.keys() | list | tojson }},
+                datasets: [{
+                    data: {{ customer_type_counts.values() | list | tojson }}
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // District Distribution
+    const districtCtx = document.getElementById('districtChart');
+    if (districtCtx) {
+        new Chart(districtCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ district_counts.keys() | list | tojson }},
+                datasets: [{
+                    label: 'Customers',
+                    data: {{ district_counts.values() | list | tojson }}
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+});
+</script>
 
 <!-- Job Status Chart -->
 <div class="card" style="margin-top:24px;">
