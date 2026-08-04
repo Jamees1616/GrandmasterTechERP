@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Grandmaster Tech ERP Branding -->
+<div class="card" style="margin-bottom:24px; padding:24px; border-left:4px solid var(--primary); background:linear-gradient(135deg, rgba(0,212,255,0.08), rgba(138,43,226,0.08));">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap;">
+
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:58px; height:58px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, var(--primary), var(--accent)); color:#fff; font-size:25px; box-shadow:0 8px 25px rgba(0,212,255,0.2);">
+                <i class="fas fa-tools"></i>
+            </div>
+
+            <div>
+                <div style="font-size:22px; font-weight:800; letter-spacing:0.5px;">
+                    GRANDMASTER TECH ERP
+                </div>
+                <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
+                    Professional Technical Service & Repair Management System
+                </div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:5px;">
+                    Monthly Service & Repair Performance Report
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:right;">
+            <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">
+                Reporting Period
+            </div>
+            <div style="font-size:15px; font-weight:700; color:var(--primary); margin-top:4px;">
+                {{ selected_month }}/{{ selected_year }}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="top-bar">
+    <div class="page-title">
+        <h2><i class="fas fa-chart-bar" style="color: var(--primary); margin-right: 8px;"></i>Monthly Reports</h2>
+        <p>Analyse service activity, customers and equipment performance</p>
+    </div>
+
+    <form method="GET" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <select name="month" class="form-select" style="width:auto; min-width:140px;">
+            {% for month_number, month_name in [
+                (1, 'January'), (2, 'February'), (3, 'March'),
+                (4, 'April'), (5, 'May'), (6, 'June'),
+                (7, 'July'), (8, 'August'), (9, 'September'),
+                (10, 'October'), (11, 'November'), (12, 'December')
+            ] %}
+            <option value="{{ month_number }}" {% if selected_month == month_number %}selected{% endif %}>
+                {{ month_name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="year" class="form-select" style="width:auto; min-width:100px;">
+            {% for year in range(selected_year - 3, selected_year + 2) %}
+            <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>
+                {{ year }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <a href="{{ url_for('download_reports_csv', month=selected_month, year=selected_year) }}"
+           class="btn btn-secondary">
+            <i class="fas fa-file-csv"></i> Download CSV
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-filter"></i> Generate
+        </button>
+    </form>
+</div>
+
+<!-- Report Summary -->
+<div class="stats-grid">
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Total Jobs</span>
+            <div class="card-icon orange">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+        </div>
+        <div class="card-value orange">{{ total_jobs }}</div>
+        <div class="card-label">Jobs created this month</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Completed</span>
+            <div class="card-icon green">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+        <div class="card-value green">{{ completed_jobs }}</div>
+        <div class="card-label">{{ completion_rate }}% completion rate</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Customers</span>
+            <div class="card-icon blue">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="card-value blue">{{ total_customers }}</div>
+        <div class="card-label">New customers this month</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Equipment</span>
+            <div class="card-icon purple">
+                <i class="fas fa-server"></i>
+            </div>
+        </div>
+        <div class="card-value purple">{{ total_equipment }}</div>
+        <div class="card-label">New equipment registered</div>
+    </div>
+
+</div>
+
+<!-- Financial Performance (Malawian Kwacha) -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-money-bill-wave" style="color:var(--success); margin-right:8px;"></i>
+            Financial Performance (MWK)
+        </span>
+    </div>
+
+    <div class="stats-grid">
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Revenue</span>
+                <div class="card-icon green">
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+            <div class="card-value green">
+                MK {{ "{:,.2f}".format(total_revenue or 0) }}
+            </div>
+            <div class="card-label">Total service + parts charges</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Amount Paid</span>
+                <div class="card-icon blue">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+            </div>
+            <div class="card-value blue">
+                MK {{ "{:,.2f}".format(total_amount_paid or 0) }}
+            </div>
+            <div class="card-label">Payments received</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Outstanding</span>
+                <div class="card-icon orange">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+            <div class="card-value orange">
+                MK {{ "{:,.2f}".format(total_balance or 0) }}
+            </div>
+            <div class="card-label">Customer balances due</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Profit</span>
+                <div class="card-icon purple">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="card-value purple">
+                MK {{ "{:,.2f}".format(total_profit or 0) }}
+            </div>
+            <div class="card-label">Estimated service profit</div>
+        </div>
+
+    </div>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+            <span>
+                <i class="fas fa-tools" style="margin-right:8px;"></i>
+                Service Charges
+            </span>
+            <strong>MK {{ "{:,.2f}".format(total_service_charges or 0) }}</strong>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; padding:12px 0;">
+            <span>
+                <i class="fas fa-cogs" style="margin-right:8px;"></i>
+                Parts Cost
+            </span>
+            <strong>MK {{ "{:,.2f}".format(total_parts_cost or 0) }}</strong>
+        </div>
+
+    </div>
+</div>
+
+<!-- Job Status Chart -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-chart-pie" style="color:var(--primary); margin-right:8px;"></i>
+            Job Status Overview
+        </span>
+    </div>
+
+    <div style="max-width:600px; margin:0 auto; padding:20px;">
+        <canvas id="jobStatusChart"></canvas>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('jobStatusChart');
+
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'In Progress', 'Completed'],
+                datasets: [{
+                    data: [
+                        {{ pending_jobs }},
+                        {{ in_progress_jobs }},
+                        {{ completed_jobs }}
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Jobs by Current Status'
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<!-- Job Status -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-tasks" style="color:var(--primary); margin-right:8px;"></i>
+            Job Status Breakdown
+        </span>
+    </div>
+
+    <div class="stats-grid">
+
+        <div style="padding:20px; text-align:center;">
+            <div class="card-value yellow">{{ pending_jobs }}</div>
+            <div class="card-label">Pending</div>
+        </div>
+
+        <div style="padding:20px; text-align:center;">
+            <div class="card-value blue">{{ in_progress_jobs }}</div>
+            <div class="card-label">In Progress</div>
+        </div>
+
+        <div style="padding:20px; text-align:center;">
+            <div class="card-value green">{{ completed_jobs }}</div>
+            <div class="card-label">Completed</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Two Column Analytics -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px;">
+
+    <!-- Priority -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-flag" style="color:var(--warning); margin-right:8px;"></i>
+                Jobs by Priority
+            </span>
+        </div>
+
+        {% if priority_counts %}
+            {% for priority, count in priority_counts.items() %}
+            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+                <span class="priority-{{ priority|lower }}">
+                    <i class="fas fa-flag"></i> {{ priority }}
+                </span>
+                <strong>{{ count }}</strong>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted); padding:20px 0;">No job data for this month.</p>
+        {% endif %}
+    </div>
+
+    <!-- Equipment Categories -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-server" style="color:var(--accent); margin-right:8px;"></i>
+                Jobs by Equipment Category
+            </span>
+        </div>
+
+        {% if category_counts %}
+            {% for category, count in category_counts.items() %}
+            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+                <span>{{ category }}</span>
+                <strong>{{ count }}</strong>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted); padding:20px 0;">No equipment data for this month.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Top Customers -->
+<div class="card" style="margin-top:24px;">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-users" style="color:var(--primary); margin-right:8px;"></i>
+            Most Active Customers
+        </span>
+    </div>
+
+    {% if top_customers %}
+    <div style="width:100%; overflow-x:auto;">
+        <table class="data-table" style="min-width:500px;">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Customer</th>
+                    <th>Jobs</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer_name, job_count in top_customers %}
+                <tr>
+                    <td>#{{ loop.index }}</td>
+                    <td style="font-weight:600;">{{ customer_name }}</td>
+                    <td>
+                        <span class="status-badge" style="background:rgba(0,212,255,0.1); color:var(--primary);">
+                            {{ job_count }} jobs
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:40px; color:var(--text-muted);">
+        <i class="fas fa-users" style="font-size:42px; opacity:0.3; margin-bottom:12px;"></i>
+        <p>No customer activity recorded for this month.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
